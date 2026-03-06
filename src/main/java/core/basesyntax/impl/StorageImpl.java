@@ -4,14 +4,13 @@ import core.basesyntax.Storage;
 
 public class StorageImpl<K, V> implements Storage<K, V> {
     private static final int MAX_SIZE = 10;
-    private K [] keys;
-    private V [] values;
+    private final Object [] keys;
+    private final Object [] values;
     private int size;
 
-    @SuppressWarnings("unchecked")
     public StorageImpl() {
-        keys = (K[]) new Object[MAX_SIZE];
-        values = (V[]) new Object[MAX_SIZE];
+        keys = new Object[MAX_SIZE];
+        values = new Object[MAX_SIZE];
         size = 0;
     }
 
@@ -25,13 +24,27 @@ public class StorageImpl<K, V> implements Storage<K, V> {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
+    private int indexOfKey(K key) {
+        for (int i = 0; i < size; i++) {
+            K stored = (K) keys[i];
+            if (stored == null && key == null) {
+                return i;
+            }
+            if (stored != null && stored.equals(key)) {
+                return i;
+            }
+        }
+        return -1;
+
+    }
+
     @Override
     public void put(K key, V value) {
-        for (int i = 0; i < size; i++) {
-            if (keysEqual(keys[i], key)) {
-                values[i] = value;
-                return;
-            }
+        int idx = indexOfKey(key);
+        if (idx >= 0) {
+            values[idx] = value;
+            return;
         }
         if (size == MAX_SIZE) {
             throw new IllegalStateException("Storage is full");
@@ -41,12 +54,12 @@ public class StorageImpl<K, V> implements Storage<K, V> {
         size++;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public V get(K key) {
-        for (int i = 0; i < size; i++) {
-            if (keysEqual(keys[i], key)) {
-                return values [i];
-            }
+        int idx = indexOfKey(key);
+        if (idx >= 0) {
+            return (V) values[idx];
         }
         return null;
     }
